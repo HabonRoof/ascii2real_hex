@@ -1,4 +1,5 @@
 #Author: JohnsonCL Chen and ChatGPT
+
 # Convert UTF-8 encode .hex file to raw format .bin file
 source_file = open('pwr-200-wvd-5412-of-pm.hex','r')
 output_file = open('output.bin','wb')
@@ -7,44 +8,51 @@ output_file = open('output.bin','wb')
 ascii_key = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
 # declare binary value in decimal, int format
 byte_value = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 58]
-
-# transformat the decimal value into binary value using bytearray()
-# real binary data [0x00, 0x01, 0x02... 0x0F, 0xA8]
-binary_data = bytearray(byte_value)
-print(binary_data)
-output_file.write(binary_data)
-# binary indicator
-bin = binary_data[0]
-hex_value = 0x00
+old_bin = 0
 char_ctr = 0
+hex_value = 0
 
 while(1):
     # read one character of file
     char = source_file.read(1)
+    char_ctr += 1
+    print("char=",char)
 
     if not char:
         break;
+    
     # if start symbol : detected
-    elif char == ':':
+    if char == ':':
         # write 0x3A into file
         bin = byte_value[16]
+        old_bin = 0
+        char_ctr = 2
+
     # abandon LF, CR symbol
-    elif char == '\n' or char == '\r':
-        pass
+    elif char == '/n' or char == '/r':
+        old_bin = 0
+        bin = 0
+        char_ctr = 0
+
     # check if 0-9 A-F character match
-    for i in range(15):
+    for i in range(16):
         if char == ascii_key[i]:
             bin = byte_value[i]
+            break;
 
     # Assemble two byte into one hex value
-    if char_ctr % 2 != 0:
-        hex_value = (bin & 0xFF) << 8 + hex_value
-        output_file.write(hex_value)
+    if char_ctr == 2:
+        hex_value = old_bin * 16 + bin
+        output_file.write(hex_value.to_bytes(1, byteorder='big'))
+        print("hex=",hex_value)
+        bin = 0
+        old_bin = 0
+        char_ctr = 0
+        # output_file.close()
+        # break;
     else:
-        hex_value = bin & 0xFF
+        old_bin = bin
 
-    char_ctr += 1
-    print("char=",char,"bin=",bin)
 
 source_file.close()
 output_file.close()
