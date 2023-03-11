@@ -4,4 +4,4 @@ output = "output2.bin"
 with open(output, "wb") as ostream:
     with open(source, "r", encoding="utf-8") as istream:
         for line in istream.readlines():
-            ostream.write(bytes.fromhex("3A" + line.rstrip()[1:]))
+            ostream.write(bytes.fromhex("3A" + line[1:]))
